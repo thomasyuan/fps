@@ -20,5 +20,21 @@
       "HUD: health and armor, ammo, wave, radar, kill feed, hitmarkers, damage direction and a run summary with accuracy, backstabs and props destroyed.",
       "Built-in headless test suite: Node mock DOM/three.js harness covering lean, ADS, tracers, reload, melee, destruction and bot balance runs."
     ]
+  },
+  {
+    "id": "v1.1",
+    "name": "Strike Zone 1.1 - Touch build",
+    "date": "2026-10-18",
+    "file": "versions/v1.1/index.html",
+    "summary": "Plays on phones and tablets: automatic device detection, on-screen stick and buttons",
+    "notes": [
+      "Detects touch devices at load time and switches to an on-screen control layer",
+      "Left thumb stick moves (push to the edge to sprint), drag the right side to look",
+      "Buttons for fire, aim, reload, jump, crouch, melee, grenade, weapon swap, lean and pause",
+      "Pointer lock is skipped on touch, so there is no click-to-capture step",
+      "Renderer drops shadows, antialiasing and the particle/debris budget on mobile",
+      "HUD reflows for small screens, respects safe-area insets, prompts for landscape in portrait",
+      "Full touch layer covered by the headless test suite, including a touch-driven bot run"
+    ]
   }
 ]

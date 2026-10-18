@@ -41,7 +41,24 @@
     <a class="now" href="../index.html">Play the latest build</a>
       <article class="rel latest">
         <header>
-          <h2>Strike Zone 1.0<span class="badge">latest</span></h2>
+          <h2>Strike Zone 1.1 - Touch build<span class="badge">latest</span></h2>
+          <span class="date">2026-10-18</span>
+        </header>
+        <p class="summary">Plays on phones and tablets: automatic device detection, on-screen stick and buttons</p>
+        <ul>
+          <li>Detects touch devices at load time and switches to an on-screen control layer</li>
+          <li>Left thumb stick moves (push to the edge to sprint), drag the right side to look</li>
+          <li>Buttons for fire, aim, reload, jump, crouch, melee, grenade, weapon swap, lean and pause</li>
+          <li>Pointer lock is skipped on touch, so there is no click-to-capture step</li>
+          <li>Renderer drops shadows, antialiasing and the particle/debris budget on mobile</li>
+          <li>HUD reflows for small screens, respects safe-area insets, prompts for landscape in portrait</li>
+          <li>Full touch layer covered by the headless test suite, including a touch-driven bot run</li>
+        </ul>
+        <a class="play" href="v1.1/index.html">Play v1.1</a>
+      </article>
+      <article class="rel">
+        <header>
+          <h2>Strike Zone 1.0</h2>
           <span class="date">2026-10-18</span>
         </header>
         <p class="summary">First public release: a complete single-file three.js wave-survival FPS.</p>
