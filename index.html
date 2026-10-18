@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#05070d" />
 <title>STRIKE ZONE &mdash; Three.js FPS</title>
 <style>
   :root{
@@ -13,7 +17,9 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;overflow:hidden;background:#05070d;color:var(--ink);
-    font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;user-select:none;-webkit-user-select:none}
+    font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;user-select:none;-webkit-user-select:none;
+    overscroll-behavior:none;-webkit-touch-callout:none;touch-action:none}
+  html{height:100%;height:100dvh}
   #app{position:fixed;inset:0}
   canvas{display:block}
 
@@ -127,6 +133,59 @@
   #loading{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
     font-size:15px;letter-spacing:.1em;color:#8fb0c8;background:#05070d;text-align:center;padding:20px}
   .hidden{display:none !important}
+
+  /* ---------- touch controls (only rendered when a coarse pointer is found) ---------- */
+  #touch{position:fixed;inset:0;z-index:8;display:none;pointer-events:none;
+    touch-action:none;-webkit-tap-highlight-color:transparent}
+  body.tap #touch{display:block}
+  body.tap .keys{display:none}
+  body.tap .keys-touch{display:grid}
+  .keys-touch{display:none;grid-template-columns:repeat(2,1fr);gap:6px 22px;font-size:13px;margin:16px 0 20px}
+  .keys-touch div{display:flex;justify-content:space-between;gap:10px;
+    border-bottom:1px dashed rgba(255,255,255,.1);padding:4px 0}
+  body.tap kbd{display:none}
+
+  #stickBase{position:absolute;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;
+    border:2px solid rgba(95,232,255,.28);background:radial-gradient(circle,rgba(9,20,30,.42),rgba(9,20,30,.12));
+    opacity:0;transition:opacity .12s}
+  #stickKnob{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px 0 0 -31px;border-radius:50%;
+    border:2px solid rgba(95,232,255,.75);background:rgba(95,232,255,.22);
+    box-shadow:0 0 16px rgba(95,232,255,.35)}
+  #stickBase.on{opacity:1}
+
+  .tbtn{position:absolute;pointer-events:auto;display:flex;align-items:center;justify-content:center;
+    border-radius:50%;border:1px solid rgba(95,232,255,.4);background:rgba(10,22,32,.55);
+    color:#cfe8f5;font:700 11px/1 "Segoe UI",system-ui,sans-serif;letter-spacing:.06em;
+    backdrop-filter:blur(2px);touch-action:none;transition:background .08s,border-color .08s,transform .08s}
+  .tbtn.on{background:rgba(95,232,255,.42);border-color:var(--neon);color:#04121a;transform:scale(.94)}
+  .tbtn.dim{opacity:.45}
+  #tFire{right:calc(22px + env(safe-area-inset-right));bottom:calc(96px + env(safe-area-inset-bottom));
+    width:104px;height:104px;font-size:14px;letter-spacing:.1em;border-color:rgba(255,140,140,.5);
+    background:rgba(60,16,16,.5);color:#ffd9d9}
+  #tFire.on{background:rgba(255,95,95,.55);border-color:#ff8a8a;color:#1a0505}
+  #tAim{right:calc(134px + env(safe-area-inset-right));bottom:calc(122px + env(safe-area-inset-bottom));width:74px;height:74px}
+  #tReload{right:calc(24px + env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom));width:62px;height:62px}
+  #tJump{right:calc(150px + env(safe-area-inset-right));bottom:calc(26px + env(safe-area-inset-bottom));width:64px;height:64px}
+  #tMelee{right:calc(94px + env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom));width:58px;height:58px}
+  #tCrouch{right:calc(216px + env(safe-area-inset-right));bottom:calc(112px + env(safe-area-inset-bottom));width:56px;height:56px}
+  #tNade{right:calc(214px + env(safe-area-inset-right));bottom:calc(30px + env(safe-area-inset-bottom));width:56px;height:56px}
+  #tSwap{right:calc(124px + env(safe-area-inset-right));bottom:calc(204px + env(safe-area-inset-bottom));width:58px;height:58px}
+  #tLeanL{left:calc(20px + env(safe-area-inset-left));bottom:calc(196px + env(safe-area-inset-bottom));width:60px;height:60px}
+  #tLeanR{left:calc(92px + env(safe-area-inset-left));bottom:calc(196px + env(safe-area-inset-bottom));width:60px;height:60px}
+  #tPause{right:calc(14px + env(safe-area-inset-right));top:calc(14px + env(safe-area-inset-top));
+    width:40px;height:40px;border-radius:10px;font-size:15px;letter-spacing:0}
+  #tPause.on{transform:none}
+  body.tap #weapon{right:auto;left:50%;transform:translateX(-50%)}
+  body.tap #radarWrap{display:none}
+  body.tap #fps{display:none}
+  body.tap #hintTap{display:block}
+  #hintTap{display:none;position:fixed;left:50%;top:52%;transform:translate(-50%,-50%);z-index:9;
+    font-size:13px;letter-spacing:.16em;color:#9fc2d8;text-shadow:0 2px 10px #000;pointer-events:none;
+    transition:opacity .6s}
+
+  #rotate{display:none;position:fixed;inset:0;z-index:40;align-items:center;justify-content:center;
+    background:#05080d;text-align:center;padding:24px;font-size:14px;letter-spacing:.14em;color:#8fb0c8}
+  @media (orientation:portrait) and (pointer:coarse){ body.tap #rotate{display:flex} }
 </style>
 </head>
 <body>
@@ -188,6 +247,23 @@
     <div id="fps">&mdash;</div>
   </div>
 
+  <div id="touch">
+    <div id="stickBase"><div id="stickKnob"></div></div>
+    <div class="tbtn" id="tFire">FIRE</div>
+    <div class="tbtn" id="tAim">AIM</div>
+    <div class="tbtn" id="tReload">RELOAD</div>
+    <div class="tbtn" id="tJump">JUMP</div>
+    <div class="tbtn" id="tMelee">MELEE</div>
+    <div class="tbtn" id="tCrouch">CROUCH</div>
+    <div class="tbtn" id="tNade">FRAG</div>
+    <div class="tbtn" id="tSwap">GUN</div>
+    <div class="tbtn" id="tLeanL">&lt; LEAN</div>
+    <div class="tbtn" id="tLeanR">LEAN &gt;</div>
+    <div class="tbtn" id="tPause">II</div>
+  </div>
+  <div id="hintTap">drag to look &middot; left thumb to move</div>
+  <div id="rotate">ROTATE YOUR DEVICE TO LANDSCAPE</div>
+
   <div id="menu" class="screen hidden">
     <div class="card">
       <h1>STRIKE <span>ZONE</span></h1>
@@ -206,6 +282,16 @@
         <div><span>Grenade</span><span><kbd>G</kbd></span></div>
         <div><span>Weapons</span><span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd></span></div>
         <div><span>Pause / Mute</span><span><kbd>Esc</kbd> / <kbd>M</kbd></span></div>
+      </div>
+      <div class="keys-touch">
+        <div><span>Move / sprint</span><span>left thumb stick (push far to sprint)</span></div>
+        <div><span>Look / aim</span><span>drag anywhere on the right</span></div>
+        <div><span>Fire</span><span>FIRE button</span></div>
+        <div><span>Aim down sights</span><span>AIM (tap to toggle)</span></div>
+        <div><span>Lean around cover</span><span>&lt; LEAN / LEAN &gt;</span></div>
+        <div><span>Melee / backstab</span><span>MELEE (tap up close)</span></div>
+        <div><span>Reload / jump / crouch</span><span>RELOAD / JUMP / CROUCH</span></div>
+        <div><span>Grenade / swap weapon</span><span>FRAG / GUN</span></div>
       </div>
       <button id="playBtn">Click to Deploy</button>
       <div class="hint">Headshots deal 2.2&times; damage. Health regenerates up to 70% after 7s without damage.<br><kbd>Q</kbd>/<kbd>E</kbd> leans your camera and shots around cover &mdash; you also peek into enemy line of fire.<br>Hold <kbd>RMB</kbd> to aim down sights: much tighter spread, slower movement, lower mouse sensitivity.<br><kbd>V</kbd> melee is a fixed hit; striking an enemy <b>from behind</b> is a one-shot backstab.<br>Crates, barrels and low walls are destructible &mdash; barrels detonate. Barrels and cover rebuild on redeploy.<br>Later waves hit harder and take more bullets, but never aim better.<br>Esc releases the mouse; click Resume to re-capture it. Needs internet on first load (three.js is pulled from a CDN).</div>
@@ -415,10 +501,35 @@ const ARENA = 62;              // half size of the playfield
 const GRAV = 22;
 
 const appEl = $('app');
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+// ============================================================
+// DEVICE DETECTION: the same build runs on desktop and on touch screens
+// ============================================================
+const DEV = (() => {
+  const coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  const touch = coarse || 'ontouchstart' in window || (navigator.maxTouchPoints || 0) > 0;
+  // phones and tablets get touch controls; a touch laptop keeps mouse + keyboard
+  const small = Math.min(innerWidth, innerHeight) < 820;
+  const tap = touch && (coarse || small);
+  return { touch, tap, coarse, small };
+})();
+if (DEV.tap) document.body.classList.add('tap');
+
+// live state driven by the on-screen controls
+const MOB = {
+  active: DEV.tap,
+  mx: 0, my: 0,          // move axes, -1..1 (my is forward)
+  sprint: false,
+  crouch: false,
+  lean: 0,               // -1 left, +1 right
+  jump: false,           // consumed by updatePlayer
+  fire: false,
+  lookId: -1, moveId: -1,
+};
+
+const renderer = new THREE.WebGLRenderer({ antialias: !DEV.tap, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, DEV.tap ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
+renderer.shadowMap.enabled = !DEV.tap;      // shadows are the first thing to go on mobile GPUs
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
 appEl.appendChild(renderer.domElement);
@@ -651,7 +762,7 @@ const SPAWNS = [
 ];
 
 // ---- debris pool (map destruction chunks) --------------------------------
-const DEBRIS_MAX = 140;
+const DEBRIS_MAX = DEV.tap ? 64 : 140;
 const debris = [];
 const matDebrisWood = new THREE.MeshStandardMaterial({ map: crateTex, color: 0xc79a5e, roughness: 0.85 });
 const matDebrisMetal = new THREE.MeshStandardMaterial({ color: 0x8d99a6, roughness: 0.6, metalness: 0.5 });
@@ -825,11 +936,12 @@ function updatePlayer(dt) {
   if (keys['KeyS']) iz -= 1;
   if (keys['KeyD']) ix += 1;
   if (keys['KeyA']) ix -= 1;
+  if (MOB.active) { ix += MOB.mx; iz += MOB.my; }
   const len = Math.hypot(ix, iz);
-  if (len > 0) { ix /= len; iz /= len; }
+  if (len > 1) { ix /= len; iz /= len; }
 
-  P.sprint = !!keys['ShiftLeft'] && iz > 0 && !P.crouch;
-  P.crouch = !!(keys['ControlLeft'] || keys['KeyC']);
+  P.sprint = (!!keys['ShiftLeft'] || MOB.sprint) && iz > 0 && !P.crouch;
+  P.crouch = !!(keys['ControlLeft'] || keys['KeyC'] || (MOB.active && MOB.crouch));
 
   const fx = -Math.sin(P.yaw), fz = -Math.cos(P.yaw);
   const rx = Math.cos(P.yaw), rz = -Math.sin(P.yaw);
@@ -838,7 +950,8 @@ function updatePlayer(dt) {
   // LEAN: Q = lean left, E = lean right. The eye/camera (and every shot you
   // fire) slides sideways so you can reach around cover while your feet stay
   // behind it. Leaning out also gives enemies line of sight on you.
-  P.leanTarget = (keys['KeyQ'] ? -1 : 0) + (keys['KeyE'] ? 1 : 0);
+  P.leanTarget = (keys['KeyQ'] || (MOB.active && MOB.lean < 0) ? -1 : 0) +
+                 (keys['KeyE'] || (MOB.active && MOB.lean > 0) ? 1 : 0);
   P.lean = moveToward(P.lean, P.leanTarget, dt * 6);
   const eyeY = P.pos.y + (P.crouch ? 1.05 : P.eye);
   let lf = 1;
@@ -861,11 +974,12 @@ function updatePlayer(dt) {
   P.vel.z = moveToward(P.vel.z, wz * speed, accel * dt);
 
   // jump
-  if (keys['Space'] && P.onGround) {
+  if ((keys['Space'] || MOB.jump) && P.onGround) {
     P.vel.y = 7.4;
     P.onGround = false;
     SND.jump();
   }
+  MOB.jump = false;   // tap is one-shot, never buffered
   P.vel.y -= GRAV * dt;
 
   // integrate with substeps so we never tunnel through walls
@@ -1100,7 +1214,7 @@ function addTracer(a, b, color, width) {
   t.life = TRACER_LIFE;
 }
 
-const PMAX = 1400;
+const PMAX = DEV.tap ? 600 : 1400;
 const pPos = new Float32Array(PMAX * 3), pVel = new Float32Array(PMAX * 3);
 const pBase = new Float32Array(PMAX * 3), pCol = new Float32Array(PMAX * 3);
 const pLife = new Float32Array(PMAX), pMax = new Float32Array(PMAX);
@@ -2103,7 +2217,7 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => { keys[e.code] = false; });
 
 addEventListener('mousemove', e => {
-  if (!state.locked) return;
+  if (!state.locked || DEV.tap) return;
   const s = 0.0021 * (1 - P.adsT * 0.52);          // slower aim while scoped
   P.yaw -= e.movementX * s;
   P.pitch -= e.movementY * s;
@@ -2111,6 +2225,7 @@ addEventListener('mousemove', e => {
   vmSway = clamp(vmSway + e.movementX * 0.004 * (1 - P.adsT * 0.7), -1, 1);
 });
 addEventListener('mousedown', e => {
+  if (DEV.tap) return;                             // touch fires through the FIRE button
   if (e.button === 2) {
     if (state.started && !state.over && state.locked && !P.ads) { P.ads = true; SND.adsOn(); }
     return;
@@ -2122,16 +2237,19 @@ addEventListener('mousedown', e => {
   if (!WEAPONS[wi].auto) tryFire();
 });
 addEventListener('mouseup', e => {
+  if (DEV.tap) return;
   if (e.button === 2) { if (P.ads) { P.ads = false; SND.adsOff(); } return; }
   firing = false;
 });
 document.addEventListener('contextmenu', e => e.preventDefault());
 
 function requestLock() {
+  if (DEV.tap) { state.locked = true; return; }   // touch screens have no pointer lock
   const p = appEl.requestPointerLock && appEl.requestPointerLock();
   if (p && p.catch) p.catch(() => {});
 }
 document.addEventListener('pointerlockchange', () => {
+  if (DEV.tap) { state.locked = true; return; }
   state.locked = document.pointerLockElement === appEl;
   if (!state.locked && state.started && !state.over) setPaused(true);
 });
@@ -2141,11 +2259,10 @@ document.addEventListener('pointerlockerror', () => {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && state.started && !state.over) setPaused(true);
 });
-
 function setPaused(v) {
   state.paused = v;
   $('pause').classList.toggle('hidden', !v);
-  if (v) { firing = false; P.ads = false; }
+  if (v) { firing = false; P.ads = false; MOB.fire = false; MOB.mx = MOB.my = 0; MOB.lean = 0; }
 }
 function gameOver() {
   state.over = true;
@@ -2170,7 +2287,7 @@ function startGame() {
   $('over').classList.add('hidden');
   $('pause').classList.add('hidden');
   $('hud').classList.remove('hidden');
-  requestLock();
+  if (DEV.tap) state.locked = true; else requestLock();
 }
 function resetGame() {
   for (const e of enemies) scene.remove(e.mesh);
@@ -2208,6 +2325,150 @@ $('againBtn').addEventListener('click', () => { resetGame(); startGame(); });
 $('resumeBtn').addEventListener('click', () => { setPaused(false); requestLock(); });
 
 // ============================================================
+// 15b. TOUCH CONTROLS (thumbs: left stick moves, right side looks)
+// ============================================================
+function initTouch() {
+  if (!DEV.tap) return;
+  const el = $('touch'), base = $('stickBase'), knob = $('stickKnob');  const fireBtn = $('tFire'), aimBtn = $('tAim');
+  const R = 46;                             // knob travel in px
+
+  const showStick = (x, y) => {
+    base.style.left = x + 'px';
+    base.style.top = y + 'px';
+    base.classList.add('on');
+    knob.style.transform = 'translate(0px,0px)';
+  };
+  const hideStick = () => { base.classList.remove('on'); MOB.mx = 0; MOB.my = 0; MOB.sprint = false; };
+
+  const lookStart = (x, y) => { MOB.lookId = 1; MOB.lx = x; MOB.ly = y; };
+
+  // one pointer handler for the free areas: left half = stick, right half = look
+  el.addEventListener('pointerdown', (e) => {
+    if (e.target !== el) return;                       // buttons handle themselves
+    el.setPointerCapture && el.setPointerCapture(e.pointerId);
+    if (e.clientX < innerWidth * 0.46 && MOB.moveId === -1) {
+      MOB.moveId = e.pointerId;
+      MOB.stickX = e.clientX; MOB.stickY = e.clientY;
+      showStick(e.clientX, e.clientY);
+    } else if (MOB.lookId === -1) {
+      lookStart(e.clientX, e.clientY);
+    }
+  });
+
+  el.addEventListener('pointermove', (e) => {
+    if (e.pointerId === MOB.moveId) {
+      let dx = e.clientX - MOB.stickX, dy = e.clientY - MOB.stickY;
+      const d = Math.hypot(dx, dy);
+      if (d > R) { dx = dx / d * R; dy = dy / d * R; }
+      knob.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px)';
+      const mag = Math.min(1, d / R);
+      MOB.mx = (dx / R) * Math.min(1, mag * 1.35);
+      MOB.my = (-dy / R) * Math.min(1, mag * 1.35);
+      MOB.sprint = mag > 0.94 && MOB.my > 0.55;
+    } else if (MOB.lookId !== -1) {
+      // drag anywhere on the right to look, same feel as the mouse
+      const s = 0.0032 * (1 - P.adsT * 0.5);
+      const mdx = e.clientX - MOB.lx, mdy = e.clientY - MOB.ly;
+      MOB.lx = e.clientX; MOB.ly = e.clientY;
+      P.yaw -= mdx * s;
+      P.pitch = clamp(P.pitch - mdy * s, -1.5, 1.5);
+      vmSway = clamp(vmSway + mdx * 0.004 * (1 - P.adsT * 0.7), -1, 1);
+    }
+  });
+
+  const endPointer = (e) => {
+    if (e.pointerId === MOB.moveId) { MOB.moveId = -1; hideStick(); }
+    if (e.pointerId === MOB.lookId && MOB.lookId === 1) MOB.lookId = -1;
+  };
+  el.addEventListener('pointerup', endPointer);
+  el.addEventListener('pointercancel', endPointer);
+
+  // ---- buttons
+  const hold = (id, on, off) => {
+    const b = $(id);
+    const press = (e) => {
+      e.preventDefault(); e.stopPropagation();
+      b.classList.add('on'); on();
+    };
+    const release = (e) => {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      b.classList.remove('on'); if (off) off();
+    };
+    b.addEventListener('pointerdown', press);
+    b.addEventListener('pointerup', release);
+    b.addEventListener('pointercancel', release);
+    b.addEventListener('pointerleave', (e) => { if (MOB.fire) release(e); });
+    return b;
+  };
+  const tap = (id, fn) => {
+    const b = $(id);
+    b.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      b.classList.add('on'); fn(b);
+    });
+    b.addEventListener('pointerup', (e) => { e.preventDefault(); e.stopPropagation(); b.classList.remove('on'); });
+    b.addEventListener('pointercancel', () => b.classList.remove('on'));
+    return b;
+  };
+
+  hold('tFire', () => {
+    if (!state.started || state.over || state.paused) return;
+    firing = true;
+    if (!WEAPONS[wi].auto) tryFire();
+  }, () => { firing = false; });
+
+  tap('tAim', () => {
+    if (!state.started || state.over || state.paused) return;
+    P.ads = !P.ads;
+    if (P.ads) SND.adsOn(); else SND.adsOff();
+    aimBtn.classList.toggle('dim', !P.ads);
+  });
+
+  tap('tReload', () => { if (state.started && !state.over) startReload(); });
+  tap('tJump', () => { if (state.started && !state.over) MOB.jump = true; });
+  tap('tMelee', () => { if (state.started && !state.over) tryMelee(); });
+  tap('tNade', () => { if (state.started && !state.over) throwNade(); });
+  tap('tSwap', () => {
+    if (!state.started || state.over) return;
+    switchWeapon((wi + 1) % WEAPONS.length);
+  });
+  tap('tCrouch', (b) => {
+    MOB.crouch = !MOB.crouch;
+    b.classList.toggle('dim', !MOB.crouch);
+  });
+  hold('tLeanL', () => { MOB.lean = -1; }, () => { MOB.lean = 0; });
+  hold('tLeanR', () => { MOB.lean = 1; }, () => { MOB.lean = 0; });
+  tap('tPause', () => {
+    if (!state.started || state.over) return;
+    setPaused(!state.paused);
+  });
+
+  aimBtn.classList.add('dim');
+  $('tCrouch').classList.add('dim');
+
+  // first-play hint fades out on its own
+  const hint = $('hintTap');
+  setTimeout(() => { hint.style.opacity = '0'; }, 6000);
+  setTimeout(() => { hint.style.display = 'none'; }, 7000);
+
+  // no pointer lock, no click-to-resume: the game is always "locked" on touch
+  state.locked = true;
+  document.addEventListener('gesturestart', (e) => e.preventDefault());
+  document.addEventListener('dblclick', (e) => e.preventDefault());
+  addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // menu copy
+  const hintEl = document.querySelector('#menu .hint');
+  if (hintEl) {
+    hintEl.innerHTML = 'Touch build: left thumb stick moves, drag the right side to look, ' +
+      'FIRE to shoot, AIM toggles the sights, LEAN peeks around cover.<br>' +
+      'Melee from behind is a one-shot backstab. Crates, barrels and low walls are destructible.<br>' +
+      'Landscape gives the widest view. Later waves hit harder but never aim better.';
+  }
+}
+initTouch();
+
+// ============================================================
 // 16. MAIN LOOP
 // ============================================================
 addEventListener('resize', () => {
@@ -2215,7 +2476,6 @@ addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
-
 let last = performance.now(), fpsAcc = 0, fpsN = 0;
 function step(dt) {
   updatePlayer(dt);

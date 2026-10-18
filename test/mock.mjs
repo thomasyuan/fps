@@ -130,15 +130,20 @@ export function makeDom() {
       remove() {},
       addEventListener(t, fn) { (this.handlers[t] = this.handlers[t] || []).push(fn); },
       requestPointerLock() { return Promise.resolve(); },
+      setPointerCapture() {},
+      releasePointerCapture() {},
       getContext() { return makeCtx(); },
+      querySelector(sel) { return (this._q = this._q || {})[sel] || (this._q[sel] = el('div')); },
       get lastChild() { return this.children[this.children.length - 1]; }
     };
   }
+  const body = el('body');
   const doc = {
-    hidden: false, pointerLockElement: null, handlers: {},
+    hidden: false, pointerLockElement: null, handlers: {}, body,
     getElementById(id) { return els[id] || (els[id] = el('div', id)); },
     createElement(tag) { return el(tag); },
     addEventListener(t, fn) { (doc.handlers[t] = doc.handlers[t] || []).push(fn); },
+    querySelector(sel) { return (doc._q = doc._q || {})[sel] || (doc._q[sel] = el('div')); },
     exitPointerLock() { doc.pointerLockElement = null; }
   };
   return { doc, els };

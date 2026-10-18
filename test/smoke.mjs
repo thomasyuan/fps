@@ -16,14 +16,17 @@ globalThis.__T = { state, P, keys, enemies, WEAPONS, pickups, grenades, worldBox
   startGame, resetGame, gameOver, throwNade, switchWeapon, startReload, tryFire, tryMelee, damagePlayer,
   damageBreakable, destroyBreakable, resetBreakables, breakablesInRadius,
   nextWave, spawnEnemy, step, updateHUD, drawRadar, explode, hitscan, playerEye, circleBlocked, segBlocked,
-  enemyShoot,
+  enemyShoot, DEV, MOB, initTouch,
   waveHpScale, waveDmgScale, LEAN_MAX, MELEE_DMG, MELEE_RANGE, ADS_ZOOM, TRACER_LIFE,
   get reloading() { return reloading; }, get tracers() { return tracers; }, get bloom() { return bloom; },
   setFiring: v => { firing = v; }, setLocked: v => { state.locked = v; } };
 `);
 
 const { doc, els } = makeDom();
-global.window = { AudioContext: makeAudio() };
+global.window = {
+  AudioContext: makeAudio(),
+  matchMedia: (q) => ({ matches: false, media: q, addListener() {}, removeListener() {} }),
+};
 global.document = doc;
 global.innerWidth = 1280; global.innerHeight = 720; global.devicePixelRatio = 1;
 global.addEventListener = (t, fn) => { (global.__wh = global.__wh || {})[t] = (global.__wh[t] || []).concat(fn); };
@@ -498,6 +501,167 @@ for (let f = 0; f < 90000 && botDeaths < 4; f++) {
 }
 console.log('bot run:', { botMaxWave, botDeaths, kills: T.state.kills, score: T.state.score, accuracy: (T.state.shotsHit / Math.max(1, T.state.shotsFired) * 100).toFixed(0) + '%' });
 Math.random = realRandomBot;
-if (botMaxWave < 5) bad('a competent player cannot reach wave 5 — still too punishing');
+if (botMaxWave < 5) bad('a competent player cannot reach wave 5 - still too punishing');
+// ---- touch controls -------------------------------------------------------
+// Drives the real on-screen layer: left stick moves, right drag looks, buttons
+// act. initTouch() binds to document.getElementById, so we re-run it with touch
+// detection forced on and then fire pointer events at those same elements.
+if (T.DEV.tap) bad('desktop run was misdetected as touch');
+if (T.MOB.active) bad('touch movement was enabled on desktop');
+
+const gel = (id) => global.document.getElementById(id);
+const fireOn = (el, type, e) => { for (const fn of (el.handlers[type] || [])) fn(e); };
+const btnDown = (id) => fireOn(gel(id), 'pointerdown', { preventDefault() {}, stopPropagation() {} });
+const btnUp = (id) => fireOn(gel(id), 'pointerup', { preventDefault() {}, stopPropagation() {} });
+
+// force the touch path on, then build the controls against the mock DOM
+for (const k of ['KeyW','KeyA','KeyS','KeyD','KeyQ','KeyE','ShiftLeft','ControlLeft','Space']) T.keys[k] = false;
+T.MOB.active = true;
+T.MOB.mx = 0; T.MOB.my = 0; T.MOB.lean = 0; T.MOB.crouch = false; T.MOB.jump = false;
+T.DEV.tap = true;   // force the touch build (the bound handlers persist after this)
+T.initTouch();
+const touchEl = gel('touch');
+if (!touchEl.handlers.pointerdown) bad('initTouch did not wire the touch layer');
+const ev = (x, y, id) => ({ clientX: x, clientY: y, pointerId: id || 1, target: touchEl, preventDefault() {}, stopPropagation() {} });
+
+// ---- look: drag on the right half turns the camera
+T.resetGame(); T.startGame(); T.setLocked(true);
+T.enemies.length = 0; T.state.spawnQueue = 0;
+T.P.pos.set(0, 0, 30); T.P.yaw = 0; T.P.pitch = 0;
+fireOn(touchEl, 'pointerdown', ev(1000, 400, 7));
+for (let i = 0; i < 5; i++) fireOn(touchEl, 'pointermove', ev(1000 + 20 * (i + 1), 400, 7));
+const yawAfterDrag = T.P.yaw;
+fireOn(touchEl, 'pointerup', ev(1100, 400, 7));
+if (Math.abs(yawAfterDrag) < 0.12) bad('dragging the right side did not rotate the view (' + yawAfterDrag.toFixed(3) + ')');
+
+T.P.yaw = 0; T.P.pitch = 0;
+fireOn(touchEl, 'pointerdown', ev(1000, 400, 8));
+for (let i = 0; i < 4; i++) fireOn(touchEl, 'pointermove', ev(1000, 400 - 25 * (i + 1), 8));
+if (T.P.pitch <= 0) bad('dragging up did not look up (' + T.P.pitch.toFixed(3) + ')');
+fireOn(touchEl, 'pointerup', ev(1000, 300, 8));
+
+// ---- move: left stick drives the player
+T.P.pos.set(0, 0, 30); T.P.yaw = 0; T.P.vel.set(0, 0, 0);
+const z0 = T.P.pos.z;
+fireOn(touchEl, 'pointerdown', ev(200, 600, 9));
+for (let i = 0; i < 4; i++) fireOn(touchEl, 'pointermove', ev(200, 600 - 30 * (i + 1), 9));
+for (let i = 0; i < 40; i++) T.step(dt);
+if (Math.abs(T.P.pos.z - z0) < 0.5) bad('left stick did not move the player (' + (T.P.pos.z - z0).toFixed(2) + ')');
+if (!(T.MOB.my > 0.4)) bad('stick forward axis is wrong: ' + T.MOB.my.toFixed(2));
+
+fireOn(touchEl, 'pointermove', ev(200, 600 - 60, 9));
+if (!T.MOB.sprint) bad('pushing the stick fully did not set sprint');
+
+fireOn(touchEl, 'pointermove', ev(200 + 60, 600, 9));
+const x0 = T.P.pos.x;
+for (let i = 0; i < 30; i++) T.step(dt);
+if (Math.abs(T.P.pos.x - x0) < 0.3) bad('stick strafe did not move sideways');
+if (Math.abs(T.MOB.mx) < 0.5) bad('stick x axis is wrong: ' + T.MOB.mx.toFixed(2));
+
+fireOn(touchEl, 'pointerup', ev(260, 600, 9));
+if (T.MOB.mx !== 0 || T.MOB.my !== 0) bad('releasing the stick did not zero the axes');
+for (let i = 0; i < 40; i++) T.step(dt);
+if (Math.hypot(T.P.vel.x, T.P.vel.z) > 0.2) bad('player kept moving after the stick was released');
+
+// ---- buttons
+T.resetGame(); T.startGame(); T.setLocked(true);
+T.enemies.length = 0; T.state.spawnQueue = 0;
+T.P.pos.set(0, 0, 30); T.P.yaw = 0;
+const fired0 = T.state.shotsFired;
+btnDown('tFire');
+for (let i = 0; i < 30; i++) T.step(dt);
+btnUp('tFire');
+if (T.state.shotsFired <= fired0) bad('the FIRE button did not fire');
+if (T.WEAPONS[0].ammo === T.WEAPONS[0].mag) bad('FIRE button did not consume ammo');
+for (let i = 0; i < 4; i++) T.step(dt);
+const firedAfterRelease = T.state.shotsFired;
+for (let i = 0; i < 40; i++) T.step(dt);
+if (T.state.shotsFired !== firedAfterRelease) bad('gun kept firing after FIRE was released');
+
+btnDown('tAim'); btnUp('tAim');
+for (let i = 0; i < 30; i++) T.step(dt);
+if (!T.P.ads || T.P.adsT < 0.8) bad('AIM button did not enable the sights');
+btnDown('tAim'); btnUp('tAim');
+for (let i = 0; i < 30; i++) T.step(dt);
+if (T.P.ads) bad('AIM button did not toggle off');
+
+T.WEAPONS[0].ammo = 3;
+btnDown('tReload'); btnUp('tReload');
+if (T.reloading <= 0) bad('RELOAD button did not start a reload');
+for (let i = 0; i < 220; i++) T.step(dt);
+if (T.WEAPONS[0].ammo !== T.WEAPONS[0].mag) bad('touch reload did not refill the magazine');
+
+const g0 = T.grenades.length;
+btnDown('tNade'); btnUp('tNade');
+if (T.grenades.length <= g0) bad('FRAG button did not throw a grenade');
+
+btnDown('tJump'); btnUp('tJump');
+T.step(dt); T.step(dt);
+if (T.P.pos.y <= 0) bad('JUMP button did not get the player airborne');
+for (let i = 0; i < 120; i++) T.step(dt);
+
+btnDown('tCrouch'); btnUp('tCrouch');
+T.step(dt);
+if (!T.P.crouch) bad('CROUCH button did not crouch');
+btnDown('tCrouch'); btnUp('tCrouch');
+T.step(dt);
+if (T.P.crouch) bad('CROUCH button did not toggle back');
+
+btnDown('tLeanR');
+for (let i = 0; i < 30; i++) T.step(dt);
+if (!(T.P.leanEff > 0.9)) bad('LEAN > button did not lean right (' + T.P.leanEff.toFixed(2) + ')');
+btnUp('tLeanR');
+for (let i = 0; i < 30; i++) T.step(dt);
+if (Math.abs(T.P.leanEff) > 0.1) bad('lean did not recentre after release');
+
+const beforeSwap = T.state.shotsFired;
+btnDown('tSwap'); btnUp('tSwap');
+for (let i = 0; i < 20; i++) T.step(dt);
+if (T.state.shotsFired !== beforeSwap) bad('weapon swap fired a shot');
+btnDown('tSwap'); btnUp('tSwap'); for (let i = 0; i < 20; i++) T.step(dt);
+btnDown('tSwap'); btnUp('tSwap'); for (let i = 0; i < 20; i++) T.step(dt);
+
+btnDown('tPause'); btnUp('tPause');
+if (!T.state.paused) bad('touch pause button did not pause');
+if (T.P.ads) bad('pausing did not drop the sights');
+btnDown('tPause'); btnUp('tPause');
+if (T.state.paused) bad('touch pause button did not unpause');
+
+T.MOB.lean = 0; T.MOB.crouch = false;
+btnDown('tMelee'); btnUp('tMelee');
+for (let i = 0; i < 40; i++) T.step(dt);
+if (Number.isNaN(T.P.pos.x) || Number.isNaN(T.P.pos.y) || Number.isNaN(T.P.pos.z)) bad('touch melee produced NaN position');
+
+// ---- a touch-driven player can still clear wave 1 and keep going
+T.MOB.active = true;
+T.resetGame(); T.startGame(); T.setLocked(true);
+let touchWave = 0, holding = false;
+for (let f = 0; f < 40000 && !T.state.over; f++) {
+  const alive = T.enemies.filter(e => !e.dead);
+  let best = null, bd = 1e9;
+  for (const e of alive) {
+    const d = Math.hypot(e.pos.x - T.P.pos.x, e.pos.z - T.P.pos.z);
+    if (d < bd) { bd = d; best = e; }
+  }
+  if (best) {
+    const dx = best.pos.x - T.P.pos.x, dz = best.pos.z - T.P.pos.z;
+    T.P.yaw = Math.atan2(-dx, -dz);
+    T.P.pitch = Math.atan2(best.pos.y + 1.1 - (T.P.pos.y + 1.62), Math.max(0.5, Math.hypot(dx, dz)));
+    T.MOB.my = bd > 16 ? 1 : (bd < 7 ? -1 : 0);
+    T.MOB.mx = Math.sin(f * 0.03) > 0.6 ? 0.55 : (Math.sin(f * 0.03) < -0.6 ? -0.55 : 0);
+  } else { T.MOB.my = 0; T.MOB.mx = 0; }
+  T.state.time += dt;
+  T.step(dt);
+  if (T.WEAPONS[0].ammo === 0 && T.reloading <= 0) T.startReload();
+  if (!holding) { btnDown('tFire'); holding = true; }
+  if (f % 40 === 39) { btnUp('tFire'); holding = false; }
+  touchWave = Math.max(touchWave, T.state.wave);
+}
+if (holding) btnUp('tFire');
+T.MOB.mx = 0; T.MOB.my = 0;
+if (touchWave < 2) bad('touch-controlled play could not clear wave 1 (reached ' + touchWave + ')');
+console.log('touch bot reached wave', touchWave, '| stick, drag-look, fire, aim, reload, jump, crouch, lean, swap, pause all work');
+
+T.MOB.active = false;
 console.log(fail ? 'SMOKE FAILED (' + fail + ')' : 'SMOKE PASSED');
 process.exit(fail ? 1 : 0);

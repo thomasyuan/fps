@@ -21,6 +21,30 @@ tools/release.mjs       snapshot + test + commit + tag in one step
 
 ## Controls
 
+The same file runs on PC and on phones/tablets. The device is detected at load
+time (coarse pointer, `ontouchstart`, `maxTouchPoints`); touch screens get an
+on-screen control layer, pointer lock is skipped, and the renderer drops
+shadows, antialiasing and the particle/debris budget so it holds a playable
+frame rate.
+
+**Touch**
+
+| Action | Control |
+| --- | --- |
+| Move / sprint | left thumb stick (push to the edge to sprint) |
+| Look / aim | drag anywhere on the right side |
+| Fire | `FIRE` (hold) |
+| Aim down sights | `AIM` (tap to toggle) |
+| Reload / jump / crouch | `RELOAD` / `JUMP` / `CROUCH` (toggle) |
+| Melee / grenade | `MELEE` / `FRAG` |
+| Lean around cover | `< LEAN` / `LEAN >` (hold) |
+| Swap weapon / pause | `GUN` / `II` |
+
+Landscape is recommended; a rotate prompt appears in portrait. HUD panels
+reflow for small screens and respect safe-area insets.
+
+**Keyboard and mouse**
+
 | Action | Keys |
 | --- | --- |
 | Move / look | `W` `A` `S` `D` + mouse |
@@ -45,7 +69,8 @@ GAME=versions/v1.0/index.html node test/smoke.mjs   # tests an old snapshot
 ```
 
 It covers lean, aiming down sights, tracers, reload animation, melee and
-backstabs, map destruction, wave scaling, regeneration, and runs a bot through
+backstabs, map destruction, wave scaling, regeneration, the whole touch control
+layer (stick, drag-look, and every on-screen button), and runs a bot through
 several waves to check that the balance has not become impossible. Kills happen
 before a commit, so a bad build cannot land.
 
