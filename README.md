@@ -4,7 +4,8 @@ A single-file three.js wave-survival FPS. No build step, no dependencies to inst
 `index.html` contains the whole game and pulls three.js from a CDN (jsDelivr, then
 unpkg, then esm.sh).
 
-Play: https://thomasyuan.github.io/fps/
+Play: https://thomasyuan.github.io/fps/ (mirror: https://www.cppcoder.net/fps/)
+Version history: https://thomasyuan.github.io/fps/versions/
 
 ## Layout
 
