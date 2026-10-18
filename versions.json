@@ -1,0 +1,24 @@
+[
+  {
+    "id": "v1.0",
+    "name": "Strike Zone 1.0",
+    "date": "2026-10-18",
+    "file": "versions/v1.0/index.html",
+    "summary": "First public release: a complete single-file three.js wave-survival FPS.",
+    "notes": [
+      "Single-file three.js arena shooter with three.js pulled from CDN fallbacks (jsDelivr, unpkg, esm.sh).",
+      "Three weapons: assault rifle, shotgun, pistol, each with its own spread, recoil and reload timing.",
+      "Wave survival with grunts, scouts and brutes; enemy HP and damage scale with the wave, accuracy never does.",
+      "Aim down sights (hold right mouse): tighter spread, slower movement, lower sensitivity, scope overlay with magnification readout.",
+      "Lean left/right with Q and E: the camera slides and rolls around cover while your collision body stays put, so you can shoot around corners without stepping out.",
+      "Melee with V or F: fixed 62 damage, and a one-shot backstab when a hostile is not facing you.",
+      "Reload animation (magazine drop, pump cycle, slide rack), staged reload sounds and a reload progress bar.",
+      "Bullet tracers for both sides: white/yellow for you, red-orange for hostiles, so you can read incoming fire.",
+      "Destructible map: crates, fuel barrels and low walls take damage from bullets, melee and grenades. Barrels detonate, destroyed cover drops its collider and everything rebuilds on redeploy.",
+      "Brightened arena with fill and bounce lighting, warmer textures and ACES tone mapping.",
+      "Out-of-combat health regeneration up to 70%, wave-clear rewards, pickups and a forgiving enemy accuracy cap.",
+      "HUD: health and armor, ammo, wave, radar, kill feed, hitmarkers, damage direction and a run summary with accuracy, backstabs and props destroyed.",
+      "Built-in headless test suite: Node mock DOM/three.js harness covering lean, ADS, tracers, reload, melee, destruction and bot balance runs."
+    ]
+  }
+]

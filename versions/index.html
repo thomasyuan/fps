@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Strike Zone - version history</title>
+<style>
+  *{box-sizing:border-box}
+  :root{--neon:#5fe8ff;--neon-dim:rgba(95,232,255,.25)}
+  body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% 0%,#12212e,#05080d 70%);
+    color:#cfe0ec;font:16px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding:48px 20px 80px}
+  .wrap{max-width:860px;margin:0 auto}
+  h1{margin:0 0 6px;font-size:38px;letter-spacing:.14em;color:var(--neon);text-shadow:0 0 26px rgba(95,232,255,.45)}
+  h1 span{color:#fff}
+  .sub{color:#8fb0c8;font-size:14px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:26px}
+  .now{display:inline-block;margin-bottom:34px;padding:12px 22px;border-radius:8px;text-decoration:none;
+    border:1px solid var(--neon);background:var(--neon);color:#04121a;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+  .now:hover{background:#8ff2ff;box-shadow:0 0 22px rgba(95,232,255,.5)}
+  .rel{border:1px solid var(--neon-dim);border-radius:12px;background:rgba(8,15,23,.72);
+    padding:22px 26px;margin-bottom:20px;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+  .rel.latest{border-color:rgba(95,232,255,.55)}
+  .rel header{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .rel h2{margin:0;font-size:20px;letter-spacing:.1em;color:#eaf7ff}
+  .badge{margin-left:10px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#04121a;
+    background:var(--neon);border-radius:4px;padding:2px 7px;vertical-align:middle}
+  .date{font:12px/1 Consolas,monospace;color:#6f8ba0;letter-spacing:.1em}
+  .summary{margin:10px 0 12px;color:#a9c4d8}
+  ul{margin:0 0 16px;padding-left:20px;color:#93aec2;font-size:14.5px}
+  li{margin:4px 0}
+  .play{display:inline-block;text-decoration:none;color:var(--neon);border:1px solid var(--neon-dim);
+    border-radius:6px;padding:8px 16px;font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+  .play:hover{background:rgba(95,232,255,.12);border-color:var(--neon)}
+  footer{margin-top:34px;color:#5f788c;font-size:12.5px;letter-spacing:.08em}
+  footer a{color:#7d97ab}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>STRIKE <span>ZONE</span></h1>
+    <div class="sub">three.js arena shooter &middot; version history</div>
+    <a class="now" href="../index.html">Play the latest build</a>
+      <article class="rel latest">
+        <header>
+          <h2>Strike Zone 1.0<span class="badge">latest</span></h2>
+          <span class="date">2026-10-18</span>
+        </header>
+        <p class="summary">First public release: a complete single-file three.js wave-survival FPS.</p>
+        <ul>
+          <li>Single-file three.js arena shooter with three.js pulled from CDN fallbacks (jsDelivr, unpkg, esm.sh).</li>
+          <li>Three weapons: assault rifle, shotgun, pistol, each with its own spread, recoil and reload timing.</li>
+          <li>Wave survival with grunts, scouts and brutes; enemy HP and damage scale with the wave, accuracy never does.</li>
+          <li>Aim down sights (hold right mouse): tighter spread, slower movement, lower sensitivity, scope overlay with magnification readout.</li>
+          <li>Lean left/right with Q and E: the camera slides and rolls around cover while your collision body stays put, so you can shoot around corners without stepping out.</li>
+          <li>Melee with V or F: fixed 62 damage, and a one-shot backstab when a hostile is not facing you.</li>
+          <li>Reload animation (magazine drop, pump cycle, slide rack), staged reload sounds and a reload progress bar.</li>
+          <li>Bullet tracers for both sides: white/yellow for you, red-orange for hostiles, so you can read incoming fire.</li>
+          <li>Destructible map: crates, fuel barrels and low walls take damage from bullets, melee and grenades. Barrels detonate, destroyed cover drops its collider and everything rebuilds on redeploy.</li>
+          <li>Brightened arena with fill and bounce lighting, warmer textures and ACES tone mapping.</li>
+          <li>Out-of-combat health regeneration up to 70%, wave-clear rewards, pickups and a forgiving enemy accuracy cap.</li>
+          <li>HUD: health and armor, ammo, wave, radar, kill feed, hitmarkers, damage direction and a run summary with accuracy, backstabs and props destroyed.</li>
+          <li>Built-in headless test suite: Node mock DOM/three.js harness covering lean, ADS, tracers, reload, melee, destruction and bot balance runs.</li>
+        </ul>
+        <a class="play" href="v1.0/index.html">Play v1.0</a>
+      </article>
+    <footer>
+      Every build is a single self-contained HTML file. Older versions stay playable. &middot;
+      <a href="../index.html">latest</a>
+    </footer>
+  </div>
+</body>
+</html>
